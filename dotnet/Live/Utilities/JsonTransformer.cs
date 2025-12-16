@@ -34,7 +34,7 @@ public static class JsonTransformer
             }
             else
             {
-                result.Append(char.ToLowerInvariant(c));
+                result.Append(c);
             }
         }
 
