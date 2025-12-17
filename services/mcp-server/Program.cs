@@ -203,16 +203,17 @@ else
 
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
 
-app.MapGet("/", () => Results.Ok(new
+app.MapGet("/info", () => Results.Ok(new
 {
-    Name = "F1 MCP Server",
+    Name = "MCP Server",
     Version = "1.0.0",
-    Description = "Model Context Protocol server for Formula 1 data",
+    Description = "Model Context Protocol server with OAuth2/Keycloak authentication",
     AuthenticationEnabled = keycloakEnabled,
     Endpoints = new
     {
-        MCP = "/mcp",
+        MCP = "/",
         Health = "/health",
+        Info = "/info",
         AuthConfig = keycloakEnabled ? "/auth/config" : null,
         AuthIntrospect = keycloakEnabled ? "/auth/introspect" : null,
         AuthUserInfo = keycloakEnabled ? "/auth/userinfo" : null
