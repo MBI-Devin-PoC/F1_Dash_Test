@@ -1,19 +1,19 @@
-# F1 MCP Server
+# MCP Server
 
-A Model Context Protocol (MCP) server for Formula 1 data, built with C# using the official MCP SDK. Features comprehensive OAuth2/OpenID Connect authentication with Keycloak and token introspection.
+A Model Context Protocol (MCP) server built with C# using the official MCP SDK. Features comprehensive OAuth2/OpenID Connect authentication with Keycloak and token introspection.
 
 ## Overview
 
-This MCP server provides tools for accessing Formula 1 information including driver standings, constructor standings, race calendar, circuit information, and more. It can be integrated with AI assistants that support the Model Context Protocol.
+This MCP server provides a simple HelloWorld tool as a starting point. It can be integrated with AI assistants that support the Model Context Protocol.
 
 ## Features
 
-- 8 F1-related tools for accessing race data, standings, and statistics
-- OAuth2/OpenID Connect authentication with Keycloak
+- Simple HelloWorld tool
+- MCP-compliant OAuth2/OpenID Connect authentication with Keycloak
+- Dynamic Client Registration (DCR) support for automatic client registration
 - Token introspection for real-time token validation
 - JWT Bearer authentication with configurable validation
 - Role-based authorization policies
-- Caching for token introspection results
 - Health check endpoint
 
 ## Prerequisites
@@ -40,36 +40,9 @@ The server runs as an HTTP server with MCP endpoints. Without Keycloak configura
 
 ## Available Tools
 
-### GetSeasonInfo
-Gets information about the current F1 season including race calendar and upcoming events.
-
-### GetDriverStandings
-Gets the current driver standings for the F1 championship.
-
-### GetConstructorStandings
-Gets the constructor (team) standings for the F1 championship.
-
-### GetCircuitInfo
-Gets information about a specific F1 circuit by name.
-- **Parameters**: `circuitName` - The name of the circuit (e.g., 'Monaco', 'Silverstone', 'Spa')
-
-### GetDriverInfo
-Gets information about a specific F1 driver by name.
-- **Parameters**: `driverName` - The name of the driver (e.g., 'Verstappen', 'Hamilton', 'Leclerc')
-
-### GetRaceCalendar
-Gets the race calendar for the F1 season with all scheduled races.
-
-### CalculatePoints
-Calculates championship points based on race position.
-- **Parameters**:
-  - `position` - The finishing position in the race (1-20)
-  - `fastestLap` - Whether the driver set the fastest lap (optional, default: false)
-  - `isSprint` - Whether this is a sprint race (optional, default: false)
-
-### GetTireInfo
-Gets tire compound information and their characteristics.
-- **Parameters**: `compound` - The tire compound (soft, medium, hard, intermediate, wet, or 'all')
+### HelloWorld
+Returns a friendly hello world greeting message.
+- **Parameters**: `name` - Optional name to greet. If not provided, defaults to 'World'.
 
 ## Configuration for MCP Clients
 
@@ -83,7 +56,7 @@ Add the following to your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "f1-mcp-server": {
+    "mcp-server": {
       "command": "dotnet",
       "args": ["run", "--project", "/path/to/services/mcp-server/F1McpServer.csproj"]
     }
@@ -96,7 +69,7 @@ Or if you've published the executable:
 ```json
 {
   "mcpServers": {
-    "f1-mcp-server": {
+    "mcp-server": {
       "command": "/path/to/F1McpServer"
     }
   }
@@ -196,8 +169,8 @@ The server exposes `/.well-known/oauth-protected-resource` which returns:
 {
   "resource": "http://localhost:3001",
   "authorization_servers": ["https://your-keycloak-server.com/realms/your-realm"],
-  "scopes_supported": ["mcp:tools", "f1:read", "f1:write", "openid", "profile", "email"],
-  "resource_name": "F1 MCP Server",
+  "scopes_supported": ["mcp:tools", "openid", "profile", "email"],
+  "resource_name": "MCP Server",
   "resource_documentation": "https://github.com/MBI-Devin-PoC/F1_Dash_Test"
 }
 ```

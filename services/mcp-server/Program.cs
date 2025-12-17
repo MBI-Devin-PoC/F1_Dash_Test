@@ -97,8 +97,8 @@ if (keycloakEnabled)
         {
             Resource = new Uri(serverUrl),
             AuthorizationServers = [new Uri(keycloakOptions.RealmUrl)],
-            ScopesSupported = ["mcp:tools", "f1:read", "f1:write", "openid", "profile", "email"],
-            ResourceName = "F1 MCP Server",
+            ScopesSupported = ["mcp:tools", "openid", "profile", "email"],
+            ResourceName = "MCP Server",
             ResourceDocumentation = new Uri("https://github.com/MBI-Devin-PoC/F1_Dash_Test")
         };
     });
