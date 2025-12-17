@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol.AspNetCore.Authentication;
+using ModelContextProtocol.Authentication;
 using ModelContextProtocol.Server;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,8 @@ builder.Logging.AddConsole(consoleLogOptions =>
 
 var keycloakSection = builder.Configuration.GetSection(KeycloakOptions.SectionName);
 var keycloakEnabled = keycloakSection.Exists() && !string.IsNullOrEmpty(keycloakSection["Authority"]);
+
+string? serverUrl = builder.Configuration["ServerUrl"] ?? "http://localhost:3001";
 
 if (keycloakEnabled)
 {
@@ -32,25 +36,24 @@ if (keycloakEnabled)
             client.Timeout = TimeSpan.FromSeconds(30);
         });
 
+    var keycloakOptions = keycloakSection.Get<KeycloakOptions>()!;
+
     builder.Services.AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme = McpAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        var keycloakOptions = keycloakSection.Get<KeycloakOptions>()!;
-
         options.Authority = keycloakOptions.RealmUrl;
-        options.Audience = keycloakOptions.ClientId;
         options.RequireHttpsMetadata = keycloakOptions.RequireHttpsMetadata;
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = keycloakOptions.ValidateIssuer,
             ValidIssuer = keycloakOptions.RealmUrl,
-            ValidateAudience = keycloakOptions.ValidateAudience,
-            ValidAudience = keycloakOptions.ClientId,
+            ValidateAudience = true,
+            ValidAudiences = new[] { serverUrl, keycloakOptions.ClientId },
             ValidateLifetime = keycloakOptions.ValidateLifetime,
             ValidateIssuerSigningKey = true,
             ClockSkew = TimeSpan.FromMinutes(1),
@@ -85,21 +88,20 @@ if (keycloakEnabled)
                     .GetRequiredService<ILogger<Program>>();
                 logger.LogWarning(context.Exception, "JWT authentication failed");
                 return Task.CompletedTask;
-            },
-            OnChallenge = context =>
-            {
-                var keycloakOpts = context.HttpContext.RequestServices
-                    .GetRequiredService<IOptions<KeycloakOptions>>().Value;
-                context.Response.Headers.Append("WWW-Authenticate",
-                    $"Bearer realm=\"{keycloakOpts.Realm}\", " +
-                    $"authorization_uri=\"{keycloakOpts.RealmUrl}/protocol/openid-connect/auth\"");
-                return Task.CompletedTask;
             }
         };
     })
-    .AddScheme<KeycloakAuthenticationOptions, KeycloakAuthenticationHandler>(
-        KeycloakAuthenticationExtensions.KeycloakScheme,
-        options => { });
+    .AddMcp(options =>
+    {
+        options.ResourceMetadata = new ProtectedResourceMetadata
+        {
+            Resource = new Uri(serverUrl),
+            AuthorizationServers = [new Uri(keycloakOptions.RealmUrl)],
+            ScopesSupported = ["mcp:tools", "f1:read", "f1:write", "openid", "profile", "email"],
+            ResourceName = "F1 MCP Server",
+            ResourceDocumentation = new Uri("https://github.com/MBI-Devin-PoC/F1_Dash_Test")
+        };
+    });
 
     builder.Services.AddAuthorization(options =>
     {
