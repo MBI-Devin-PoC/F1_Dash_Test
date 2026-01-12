@@ -31,6 +31,14 @@ const config: NextConfig = {
 	env: {
 		version: pack.version,
 	},
+	images: {
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "images.unsplash.com",
+			},
+		],
+	},
 	// headers: async () => frameDisableHeaders,
 };
 
